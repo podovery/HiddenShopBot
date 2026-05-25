@@ -165,7 +165,7 @@ class Program
             );
     }
 
-    private void StartPortListener()
+    private async void StartPortListener()
     {
         string portText =
             Environment.GetEnvironmentVariable("PORT") ?? "10000";
@@ -178,5 +178,29 @@ class Program
         listener.Start();
 
         Console.WriteLine($"[WEB] Listening on port {port}");
+
+        while (true)
+        {
+            TcpClient client = await listener.AcceptTcpClientAsync();
+
+            _ = Task.Run(async () =>
+            {
+                using var stream = client.GetStream();
+
+                string response =
+                    "HTTP/1.1 200 OK\r\n" +
+                    "Content-Type: text/plain\r\n" +
+                    "Content-Length: 14\r\n" +
+                    "\r\n" +
+                    "Bot is running";
+
+                byte[] data =
+                    System.Text.Encoding.UTF8.GetBytes(response);
+
+                await stream.WriteAsync(data, 0, data.Length);
+
+                client.Close();
+            });
+        }
     }
 }
