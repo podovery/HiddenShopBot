@@ -45,7 +45,11 @@ class Program
                 return;
 
             // 메시지 검사
-            if(MessageInspect(message.Content))
+            if (!MessageInspect(message.Content))
+                return;
+
+            // 권한 검사
+            if (!HasBotPermission(message))
                 return;
 
             await MessageWrite(message);
@@ -59,18 +63,41 @@ class Program
     private bool MessageInspect(string content)
     {
         if (!content.Contains("he's in "))
-            return true;
+            return false;
 
         if (!content.Contains("Selling:"))
-            return true;
+            return false;
 
         if (!content.Contains("Terul's Maw Shop:"))
-            return true;
+            return false;
 
         if (!content.Contains("Video:"))
-            return true;
+            return false;
 
-        return false;
+        return true;
+    }
+
+    private bool HasBotPermission(SocketMessage message)
+    {
+        if (message.Channel is not SocketGuildChannel channel)
+            return false;
+
+        var botUser =
+            channel.GetUser(_client.CurrentUser.Id);
+
+        if (botUser == null)
+            return false;
+
+        var permissions =
+            botUser.GetPermissions(channel);
+
+        if (!permissions.SendMessages)
+            return false;
+
+        if (!permissions.EmbedLinks)
+            return false;
+
+        return true;
     }
 
     private async Task MessageWrite(SocketMessage message)
