@@ -10,7 +10,6 @@ class Program
         => await new Program().MainAsync();
 
     private string token = Environment.GetEnvironmentVariable("BOT_TOKEN");
-    private string targetChannelId = Environment.GetEnvironmentVariable("CHANNEL_ID");
 
     public async Task MainAsync()
     {
@@ -45,8 +44,8 @@ class Program
             if (message.Author.Id == _client.CurrentUser.Id)
                 return;
 
-            // 채널 검사
-            if (message.Channel.Id != ulong.Parse(targetChannelId))
+            // 메시지 검사
+            if(MessageInspect(message.Content))
                 return;
 
             await MessageWrite(message);
@@ -55,6 +54,23 @@ class Program
         {
             Console.WriteLine(ex);
         }
+    }
+
+    private bool MessageInspect(string content)
+    {
+        if (!content.Contains("he's in "))
+            return true;
+
+        if (!content.Contains("Selling:"))
+            return true;
+
+        if (!content.Contains("Terul's Maw Shop:"))
+            return true;
+
+        if (!content.Contains("Video:"))
+            return true;
+
+        return false;
     }
 
     private async Task MessageWrite(SocketMessage message)
@@ -78,29 +94,21 @@ class Program
                 location.Substring(1);
         }
 
-        //Console.WriteLine($"[LOG] location:\n{location}");
-
         string strangerSection =
             content.Split("Selling:")[1]
            .Split("\n\n")[0]
            .Trim();
-
-        //Console.WriteLine($"[LOG] strangerSection:\n{strangerSection}");
 
         string terulSection =
             content.Split("Terul's Maw Shop:")[1]
            .Split("\n\n")[0]
            .Trim();
 
-        //Console.WriteLine($"[LOG] terulSection:\n{terulSection}");
-
         var match = Regex.Match(
             content,
             @"Video:\s*(https?:\/\/\S+)");
 
         string videoUrl = match.Groups[1].Value;
-
-        //Console.WriteLine($"[LOG] videoUrl:\n{videoUrl}");
 
         var embed = new EmbedBuilder()
             .WithTitle($"🛒  {koreaTime:yyyy년 MM월 dd일} 히든 상점")
