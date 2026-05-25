@@ -1,6 +1,9 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 class Program
 {
@@ -26,6 +29,9 @@ class Program
 
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
+
+        // 웹 서버 시작
+        await StartWebServer();
 
         await Task.Delay(-1);
     }
@@ -158,5 +164,21 @@ class Program
         await message.Channel.SendMessageAsync(
             text: videoUrl
             );
+    }
+
+    private async Task StartWebServer()
+    {
+        var port =
+            Environment.GetEnvironmentVariable("PORT") ?? "10000";
+
+        var builder = WebApplication.CreateBuilder();
+
+        builder.WebHost.UseUrls($"http://*:{port}");
+
+        var app = builder.Build();
+
+        app.MapGet("/", () => "Bot is running");
+
+        await app.StartAsync();
     }
 }
