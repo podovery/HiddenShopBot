@@ -1,9 +1,8 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using System.Net;
+using System.Net.Sockets;
 
 class Program
 {
@@ -30,8 +29,8 @@ class Program
         await _client.LoginAsync(TokenType.Bot, token);
         await _client.StartAsync();
 
-        // 웹 서버 시작
-        await StartWebServer();
+        // 포트 열기
+        StartPortListener();
 
         await Task.Delay(-1);
     }
@@ -166,19 +165,18 @@ class Program
             );
     }
 
-    private async Task StartWebServer()
+    private void StartPortListener()
     {
-        var port =
+        string portText =
             Environment.GetEnvironmentVariable("PORT") ?? "10000";
 
-        var builder = WebApplication.CreateBuilder();
+        int port = int.Parse(portText);
 
-        builder.WebHost.UseUrls($"http://*:{port}");
+        TcpListener listener =
+            new TcpListener(IPAddress.Any, port);
 
-        var app = builder.Build();
+        listener.Start();
 
-        app.MapGet("/", () => "Bot is running");
-
-        await app.StartAsync();
+        Console.WriteLine($"[WEB] Listening on port {port}");
     }
 }
